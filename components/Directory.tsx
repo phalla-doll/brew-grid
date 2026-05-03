@@ -158,38 +158,38 @@ export default function Directory() {
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
           <AnimatePresence>
             {loading && results.length === 0 ? (
-              // Skeletons
+              // Initial Skeletons
               Array.from({ length: 12 }).map((_, i) => (
-                <motion.div
-                  key={`skeleton-${i}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="break-inside-avoid rounded-2xl bg-[#0A0A0A] border border-white/5 p-8 animate-pulse h-56 mb-6"
-                />
+                <SkeletonCard key={`skeleton-init-${i}`} index={i} />
               ))
-            ) : results.length > 0 ? (
+            ) : (
               results.map((formula, index) => (
                 <FormulaCard key={formula.name} formula={formula} index={index} />
               ))
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="col-span-full py-32 text-left sm:text-center"
-              >
-                <h3 className="text-3xl font-display font-medium text-white/80 mb-4">No results found</h3>
-                <p className="text-white/40 font-sans text-lg">We couldn't find any packages matching "{query}"</p>
-              </motion.div>
             )}
+            
+            {loadingMore && Array.from({ length: 8 }).map((_, i) => (
+               <SkeletonCard key={`skeleton-more-${i}`} index={i} />
+            ))}
           </AnimatePresence>
         </div>
 
+        {!loading && results.length === 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-32 text-left sm:text-center w-full"
+          >
+            <h3 className="text-3xl font-display font-medium text-white/80 mb-4">No results found</h3>
+            <p className="text-white/40 font-sans text-lg">We couldn't find any packages matching "{query}"</p>
+          </motion.div>
+        )}
+
         {/* Infinite Scroll Loader */}
-        {results.length > 0 && (
+        {results.length > 0 && !loadingMore && (
           <div ref={loaderRef} className="w-full mt-16 py-10 flex flex-col items-center justify-center">
             {hasMore ? (
-              <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+              <div className="h-8"></div> // Spacer to keep height consistent while triggering intersection
             ) : (
               <p className="text-white/30 font-sans text-sm text-center">You've reached the end of the directory.</p>
             )}
@@ -197,6 +197,41 @@ export default function Directory() {
         )}
       </div>
     </div>
+  );
+}
+
+function SkeletonCard({ index }: { index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4, delay: Math.min((index % 48) * 0.02, 0.3), ease: "easeOut" }}
+      className="break-inside-avoid flex flex-col rounded-2xl bg-[#0A0A0A] border border-white/5 overflow-hidden min-h-[240px] p-6 sm:p-8 mb-6"
+    >
+      <div className="flex items-start justify-between mb-8">
+        <div className="h-8 w-1/3 bg-white/5 rounded-md animate-pulse"></div>
+        <div className="h-5 w-5 bg-white/5 rounded-sm animate-pulse ml-4"></div>
+      </div>
+      
+      <div className="mb-10 flex-grow flex flex-col gap-3">
+        <div className="h-4 w-full bg-white/5 rounded animate-pulse"></div>
+        <div className="h-4 w-11/12 bg-white/5 rounded animate-pulse"></div>
+        <div className="h-4 w-4/5 bg-white/5 rounded animate-pulse"></div>
+      </div>
+
+      <div className="mt-auto space-y-6">
+        <div className="flex flex-wrap items-center gap-3">
+           <div className="h-6 w-16 bg-white/5 rounded animate-pulse"></div>
+           <div className="h-6 w-24 bg-white/5 rounded animate-pulse"></div>
+        </div>
+        
+        <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+           <div className="h-5 w-1/2 bg-white/5 rounded animate-pulse"></div>
+           <div className="h-5 w-5 bg-white/5 rounded animate-pulse"></div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
