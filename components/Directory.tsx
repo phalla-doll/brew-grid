@@ -155,8 +155,8 @@ export default function Directory() {
         </motion.div>
 
         {/* Masonry Layout */}
-        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-          <AnimatePresence mode="popLayout">
+        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
+          <AnimatePresence>
             {loading && results.length === 0 ? (
               // Skeletons
               Array.from({ length: 12 }).map((_, i) => (
@@ -165,7 +165,7 @@ export default function Directory() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="break-inside-avoid rounded-2xl bg-[#0A0A0A] border border-white/5 p-8 animate-pulse h-56"
+                  className="break-inside-avoid rounded-2xl bg-[#0A0A0A] border border-white/5 p-8 animate-pulse h-56 mb-6"
                 />
               ))
             ) : results.length > 0 ? (
@@ -211,11 +211,11 @@ function FormulaCard({ formula, index }: { formula: Formula; index: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: Math.min(index * 0.05, 0.4), ease: [0.16, 1, 0.3, 1] }}
-      layout
-      className="break-inside-avoid group flex flex-col rounded-2xl bg-[#0A0A0A] border border-white/5 hover:border-white/20 hover:bg-[#0D0D0D] transition-all duration-500 overflow-hidden min-h-[240px] p-6 sm:p-8"
+      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.4, delay: Math.min((index % 48) * 0.02, 0.3), ease: "easeOut" }}
+      className="break-inside-avoid group flex flex-col rounded-2xl bg-[#0A0A0A] border border-white/5 hover:border-white/20 hover:bg-[#0D0D0D] transition-all duration-500 overflow-hidden min-h-[240px] p-6 sm:p-8 mb-6"
     >
       <div className="flex items-start justify-between mb-8">
         <h3 className="font-display font-medium text-2xl text-white/90 tracking-tight group-hover:text-white transition-colors duration-300">
