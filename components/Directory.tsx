@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ExternalLink, Download, Check } from 'lucide-react';
+import { Search, ExternalLink, Download, Check, Loader2 } from 'lucide-react';
 
 interface Formula {
   name: string;
@@ -19,29 +19,77 @@ interface Formula {
 
 export default function Directory() {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<Formula[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  // Debounce query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+      setPage(1);
+      setResults([]);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
+    let active = true;
+
     const fetchResults = async () => {
-      setLoading(true);
+      if (page === 1) setLoading(true);
+      else setLoadingMore(true);
+
       try {
-        const res = await fetch(`/api/formulae?q=${encodeURIComponent(query)}&limit=48`);
+        const res = await fetch(`/api/formulae?q=${encodeURIComponent(debouncedQuery)}&limit=48&page=${page}`);
         const data = await res.json();
-        setResults(data.data);
+        
+        if (active) {
+          if (page === 1) {
+            setResults(data.data);
+          } else {
+            setResults(prev => [...prev, ...data.data]);
+          }
+          setHasMore(data.data.length === 48); // limit is 48
+        }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
       }
     };
 
-    const timer = setTimeout(() => {
-      fetchResults();
-    }, 300); // debounce
+    fetchResults();
 
-    return () => clearTimeout(timer);
-  }, [query]);
+    return () => { active = false; };
+  }, [debouncedQuery, page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          setPage(p => p + 1);
+        }
+      },
+      { rootMargin: "100px" }
+    );
+
+    const currentLoaderNode = loaderRef.current;
+    if (currentLoaderNode) {
+      observer.observe(currentLoaderNode);
+    }
+    
+    return () => {
+      if (currentLoaderNode) observer.unobserve(currentLoaderNode);
+    };
+  }, [hasMore, loading, loadingMore]);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-white selection:text-black pb-24">
@@ -113,6 +161,17 @@ export default function Directory() {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Infinite Scroll Loader */}
+        {results.length > 0 && (
+          <div ref={loaderRef} className="w-full mt-16 py-10 flex flex-col items-center justify-center">
+            {hasMore ? (
+              <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+            ) : (
+              <p className="text-white/30 font-sans text-sm text-center">You've reached the end of the directory.</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
