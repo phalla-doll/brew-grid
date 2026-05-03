@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ExternalLink, Download, Check, Loader2 } from 'lucide-react';
+import { Search, ExternalLink, Copy, Check, Loader2 } from 'lucide-react';
 
 interface Formula {
   name: string;
@@ -277,7 +277,7 @@ function FormulaCard({ formula, index }: { formula: Formula; index: number }) {
                   exit={{ scale: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Download className="w-5 h-5" />
+                  <Copy className="w-5 h-5" />
                 </motion.div>
               )}
             </AnimatePresence>
